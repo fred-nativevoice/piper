@@ -1,0 +1,11 @@
+python3 -m piper_train \
+    --dataset-dir dataset_peppa_pig_v20250310_16khz/ \
+    --accelerator 'gpu' \
+    --devices 1 \
+    --batch-size 30 \
+    --validation-split 0.01 \
+    --num-test-examples 50 \
+    --max_epochs 3000 \
+    --checkpoint-epochs 1 \
+    --resume_from_checkpoint ./checkpoint_en_us_lessac_low_quality/epoch\=2307-step\=558536.ckpt \
+    --precision 32
