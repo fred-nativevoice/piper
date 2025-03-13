@@ -25,12 +25,19 @@ from piper_phonemize import (
     tashkeel_run,
 )
 
+from piper_train.symbols import symbols, _bos, _eos
+_symbol_to_id = {s: i for i, s in enumerate(symbols)}
+_id_to_symbol = {i: s for i, s in enumerate(symbols)} 
+
 from .norm_audio import cache_norm_audio, make_silence_detector
 
 _DIR = Path(__file__).parent
 _VERSION = (_DIR / "VERSION").read_text(encoding="utf-8").strip()
 _LOGGER = logging.getLogger("preprocess")
 
+
+# Import symbols from symbols.py (assuming it's in the same directory)
+from piper_train.symbols import symbols
 
 class PhonemeType(str, Enum):
     ESPEAK = "espeak"
@@ -182,9 +189,7 @@ def main() -> None:
                 "inference": {"noise_scale": 0.667, "length_scale": 1, "noise_w": 0.8},
                 "phoneme_type": args.phoneme_type.value,
                 "phoneme_map": {},
-                "phoneme_id_map": get_codepoints_map()[args.language]
-                if args.phoneme_type == PhonemeType.TEXT
-                else get_espeak_map(),
+                "phoneme_id_map": _symbol_to_id if args.phoneme_type == PhonemeType.TEXT else get_espeak_map(),
                 "num_symbols": get_max_phonemes(),
                 "num_speakers": len(speaker_counts),
                 "speaker_id_map": speaker_ids,
@@ -346,6 +351,7 @@ def phonemize_batch_text(
                 try:
                     if args.tashkeel:
                         utt.text = tashkeel_run(utt.text)
+                    utt.text = utt.text.lower().strip()
 
                     _LOGGER.debug(utt)
                     all_phonemes = phonemize_codepoints(casing(utt.text))
@@ -355,11 +361,14 @@ def phonemize_batch_text(
                         for sentence_phonemes in all_phonemes
                         for phoneme in sentence_phonemes
                     ]
+                    '''
                     utt.phoneme_ids = phoneme_ids_codepoints(
                         args.language,
                         utt.phonemes,
                         missing_phonemes=utt.missing_phonemes,
                     )
+                    '''                       
+                    utt.phoneme_ids = [_symbol_to_id[_bos]] + [_symbol_to_id[c] for c in utt.phonemes if c in symbols] + [_symbol_to_id[_eos]]
                     if not args.skip_audio:
                         utt.audio_norm_path, utt.audio_spec_path = cache_norm_audio(
                             utt.audio_path,
