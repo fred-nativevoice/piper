@@ -50,7 +50,7 @@ def cache_norm_audio(
         # to keep and then just load that with librosa.
         vad_sample_rate = 16000
         audio_16khz, _sr = librosa.load(path=audio_path, sr=vad_sample_rate)
-
+        ''' 
         offset_sec, duration_sec = trim_silence(
             audio_16khz,
             detector,
@@ -60,13 +60,13 @@ def cache_norm_audio(
             keep_chunks_before=silence_keep_chunks_before,
             keep_chunks_after=silence_keep_chunks_after,
         )
-
+        ''' 
         # NOTE: audio is already in [-1, 1] coming from librosa
         audio_norm_array, _sr = librosa.load(
             path=audio_path,
             sr=sample_rate,
-            offset=offset_sec,
-            duration=duration_sec,
+            #offset=offset_sec,
+            #duration=duration_sec,
         )
 
         # Save to cache directory
